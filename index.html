@@ -1050,7 +1050,7 @@ function doRSVP(){
   if(!n){ alert('Enter your name.'); return; }
   if(!going){ alert('Tell us if you can make it.'); return; }
   var btn=document.querySelector('.submit');
-  btn.textContent='Sending...'; btn.disabled=true;
+  btn.textContent='Compressing...'; btn.disabled=true;
   var data=new FormData();
   data.append('name',n);
   data.append('guests',guests||'Not specified');
@@ -1352,7 +1352,7 @@ function submitPhotos(){
   if(!sender){ alert('Please enter your name so Mario knows who sent the photos!'); return; }
   if(selectedFiles.length===0){ alert('Please choose at least one photo.'); return; }
   var btn=document.getElementById('photo-submit-btn');
-  btn.textContent='Sending...'; btn.disabled=true;
+  btn.textContent='Compressing...'; btn.disabled=true;
   // Compress each image to max 800px and quality 0.7 before sending
   var promises=selectedFiles.slice(0,9).map(function(file){
     return new Promise(function(resolve){
@@ -1360,7 +1360,7 @@ function submitPhotos(){
       r.onload=function(e){
         var img=new Image();
         img.onload=function(){
-          var maxW=800, maxH=800;
+          var maxW=600, maxH=600;
           var w=img.width, h=img.height;
           if(w>maxW||h>maxH){
             var ratio=Math.min(maxW/w, maxH/h);
@@ -1369,7 +1369,7 @@ function submitPhotos(){
           var canvas=document.createElement('canvas');
           canvas.width=w; canvas.height=h;
           canvas.getContext('2d').drawImage(img,0,0,w,h);
-          var compressed=canvas.toDataURL('image/jpeg',0.7);
+          var compressed=canvas.toDataURL('image/jpeg',0.5);
           resolve({name:file.name.replace(/\.[^.]+$/,'.jpg'),type:'image/jpeg',data:compressed.split(',')[1]});
         };
         img.src=e.target.result;
@@ -1378,6 +1378,7 @@ function submitPhotos(){
     });
   });
   Promise.all(promises).then(function(images){
+    btn.textContent='Sending 1 of '+images.length+'...';
     var sendNext=function(i){
       if(i>=images.length){
         document.getElementById('photo-submit-btn').style.display='none';
@@ -1392,7 +1393,7 @@ function submitPhotos(){
         body:JSON.stringify({type:'photo',sender:sender,caption:caption,photoIndex:i+1,totalPhotos:images.length,images:[images[i]]}),
         headers:{'Content-Type':'application/json'},
         mode:'no-cors'
-      }).catch(function(){}).finally(function(){ sendNext(i+1); });
+      }).catch(function(){}).finally(function(){ btn.textContent='Sent '+(i+1)+' of '+images.length+'...'; sendNext(i+1); });
     };
     sendNext(0);
   });
