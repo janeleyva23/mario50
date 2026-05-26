@@ -1025,21 +1025,65 @@ var spawnTimer=null,countdownTimer=null,marioTimer=null;
 
 var SHEET_CSV='https://docs.google.com/spreadsheets/d/e/2PACX-1vTaE_n6HeW7i8EKob1np82oqQGxiPWcyvBes9rkMSFHoREHUccJp53DaRaCJl2X_kETOJmjBPp4tw7j/pub?gid=982481928&single=true&output=csv';
 
+function parseCSV(text){
+  var lines=text.trim().split('\n');
+  var parsed=[];
+  lines.forEach(function(line,i){
+    if(i===0) return;
+    var cols=[]; var cur=''; var inQ=false;
+    for(var c=0;c<line.length;c++){
+      var ch=line[c];
+      if(ch==='"'){ inQ=!inQ; }
+      else if(ch===',' && !inQ){ cols.push(cur.trim()); cur=''; }
+      else { cur+=ch; }
+    }
+    cols.push(cur.trim());
+    var type=(cols[2]||'').replace(/"/g,'').trim();
+    var sc=parseInt((cols[3]||'').replace(/"/g,''));
+    var nm=(cols[1]||'').replace(/"/g,'').trim();
+    if(type==='SCORE' && !isNaN(sc) && sc>0 && nm){
+      parsed.push({name:nm,score:sc,date:(cols[4]||'').trim()});
+    }
+  });
+  parsed.sort(function(a,b){ return b.score-a.score; });
+  return parsed.slice(0,10);
+}
+
 function loadLeaderboard(){
   var lb=document.getElementById('leaderboard');
   if(lb) lb.innerHTML='<div style="font-size:.5rem;color:#E8C547;font-family:monospace;padding:4px;">Loading scores...</div>';
-  fetch('/.netlify/functions/scores?t='+Date.now(),{cache:'no-store'})
-  .then(function(r){ return r.json(); })
-  .then(function(data){
-    if(data && data.scores && data.scores.length>0){
-      scores=data.scores;
-      renderLeaderboard();
-    } else {
-      if(lb) lb.innerHTML='<div style="font-size:.5rem;color:#555;font-family:monospace;padding:4px;">No scores yet</div>';
-    }
+  // Try multiple approaches in sequence
+  var csvUrl=SHEET_CSV;
+  // Approach 1: direct (works if no CORS issue)
+  fetch(csvUrl,{mode:'cors',cache:'no-store'})
+  .then(function(r){ if(!r.ok) throw new Error('direct failed'); return r.text(); })
+  .then(function(text){
+    var parsed=parseCSV(text);
+    if(parsed.length>0){ scores=parsed; renderLeaderboard(); }
+    else throw new Error('no data');
   })
-  .catch(function(err){
-    if(lb) lb.innerHTML='<div style="font-size:.5rem;color:#D94F3D;font-family:monospace;padding:4px;">Error: '+String(err)+'</div>';
+  .catch(function(){
+    // Approach 2: allorigins
+    fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(csvUrl),{cache:'no-store'})
+    .then(function(r){ return r.text(); })
+    .then(function(text){
+      var parsed=parseCSV(text);
+      if(parsed.length>0){ scores=parsed; renderLeaderboard(); }
+      else throw new Error('no data');
+    })
+    .catch(function(){
+      // Approach 3: corsproxy
+      fetch('https://corsproxy.io/?'+encodeURIComponent(csvUrl),{cache:'no-store'})
+      .then(function(r){ return r.text(); })
+      .then(function(text){
+        var parsed=parseCSV(text);
+        if(parsed.length>0){ scores=parsed; renderLeaderboard(); }
+        else{ if(lb) lb.innerHTML='<div style="font-size:.5rem;color:#555;font-family:monospace;padding:4px;">Could not load scores. Try refreshing.</div>'; }
+      })
+      .catch(function(err){
+        if(lb) lb.innerHTML='<div style="font-size:.5rem;color:#D94F3D;font-family:monospace;padding:4px;">'+String(err)+'</div>';
+      });
+    });
   });
 }
 
