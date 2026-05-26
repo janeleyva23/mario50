@@ -230,11 +230,10 @@ body{background:var(--black);color:var(--white);font-family:'DM Sans',sans-serif
         <div style="font-family:'Press Start 2P',monospace;font-size:.55rem;color:#E8C547;letter-spacing:.08em;" id="final-score-txt"></div>
         <div style="font-family:'Space Mono',monospace;font-size:.5rem;color:#666;letter-spacing:.1em;" id="rank-txt"></div>
         <div id="name-entry" style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:6px;width:100%;padding:0 16px;">
-          <div style="font-family:'Press Start 2P',monospace;font-size:.45rem;color:#E8C547;letter-spacing:.08em;text-align:center;">ENTER YOUR NAME &amp; SAVE</div>
-          <input id="player-name" type="text" maxlength="12" placeholder="YOUR NAME" style="background:#1a1a1a;border:2px solid #E8C547;border-radius:2px;padding:10px 14px;color:#EDEDEC;font-family:'Press Start 2P',monospace;font-size:.55rem;letter-spacing:.1em;text-align:center;width:200px;outline:none;" onkeydown="if(event.key==='Enter') saveScore();"/>
-          <button onclick="saveScore()" style="background:#E8C547;border:none;border-radius:2px;padding:12px 24px;font-family:'Press Start 2P',monospace;font-size:.55rem;letter-spacing:.08em;cursor:pointer;color:#000;width:200px;">&#x1F3AE; SAVE SCORE</button>
+          <input id="player-name" type="text" maxlength="12" placeholder="Type your name here" style="background:#1a1a1a;border:2px solid #E8C547;border-radius:2px;padding:10px 14px;color:#EDEDEC;font-family:'Press Start 2P',monospace;font-size:.55rem;letter-spacing:.1em;text-align:center;width:100%;outline:none;" onkeydown="if(event.key==='Enter') saveScore();"/>
+          <button onclick="saveScore()" style="background:#E8C547;border:none;border-radius:2px;padding:16px;font-family:'Anton',sans-serif;font-size:1.2rem;letter-spacing:.08em;cursor:pointer;color:#000;width:100%;display:block;">SAVE SCORE &#x2713;</button>
         </div>
-        
+        <button id="close-gameover" onclick="document.getElementById('game-over').style.display='none';" style="display:none;background:transparent;border:1px solid rgba(232,197,71,.3);border-radius:2px;padding:10px;font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:.1em;cursor:pointer;color:#9a9a90;width:100%;margin-top:8px;">&#x2715; Close &amp; view leaderboard</button>
       </div>
     </div>
     <div style="border-top:1px solid rgba(232,197,71,.12);padding:14px 18px;">
@@ -1226,6 +1225,7 @@ function saveScore(){
   }).catch(function(){});
   showToast('Score saved, '+nameClean+'!');
   setTimeout(loadLeaderboard, 3000);
+  var cb=document.getElementById('close-gameover'); if(cb) cb.style.display='block';
 }
 function restartGame(){ /* one try only */ }
 function renderLeaderboard(){
