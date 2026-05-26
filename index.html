@@ -640,16 +640,7 @@ function endGame(){
   document.getElementById('player-name').value='';
   document.getElementById('name-entry').style.display='flex';
 }
-function saveScore(){
-  var name=document.getElementById('player-name').value.trim()||'PLAYER';
-  scores.push({name:name.toUpperCase().slice(0,10),score:gScore,date:new Date().toLocaleDateString()});
-  scores.sort(function(a,b){ return b.score-a.score; });
-  scores=scores.slice(0,10);
-  try{ localStorage.setItem('mario50_scores',JSON.stringify(scores)); }catch(e){}
-  document.getElementById('name-entry').style.display='none';
-  renderLeaderboard();
-  showToast('Score saved, '+name+'!');
-}
+// saveScore defined below
 function restartGame(){
   document.getElementById('game-over').style.display='none';
   startGame();
