@@ -225,27 +225,26 @@ body{background:var(--black);color:var(--white);font-family:'DM Sans',sans-serif
         <div style="font-family:'Press Start 2P',monospace;font-size:.7rem;color:#E8C547;letter-spacing:.1em;text-align:center;line-height:1.8;">TAP TO<br>START</div>
         <div style="font-family:'Space Mono',monospace;font-size:.5rem;color:#666;letter-spacing:.12em;text-align:center;">Tap items before they disappear<br>Highest score wins a prize!</div>
       </div>
-      <div id="game-over" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(12,12,11,.97);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:9999;padding:24px;">
+      <div id="game-over" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(12,12,11,.97);display:none;z-index:9999;flex-direction:column;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
 
-        <div style="font-family:'Press Start 2P',monospace;font-size:.8rem;color:#D94F3D;letter-spacing:.08em;">GAME OVER</div>
-        <div style="font-family:'Press Start 2P',monospace;font-size:.6rem;color:#E8C547;" id="final-score-txt"></div>
-        <div style="font-family:'Space Mono',monospace;font-size:.5rem;color:#666;" id="rank-txt"></div>
+        <div style="font-family:'Press Start 2P',monospace;font-size:.8rem;color:#D94F3D;margin-bottom:10px;">GAME OVER</div>
+        <div style="font-family:'Press Start 2P',monospace;font-size:.6rem;color:#E8C547;margin-bottom:4px;" id="final-score-txt"></div>
+        <div style="font-family:'Space Mono',monospace;font-size:.5rem;color:#666;margin-bottom:20px;" id="rank-txt"></div>
 
-        <!-- Name entry shown first -->
-        <div id="name-entry" style="width:100%;display:flex;flex-direction:column;gap:12px;">
-          <input id="player-name" type="text" maxlength="12" placeholder="Type your name"
-            style="width:100%;background:#1a1a1a;border:2px solid #E8C547;border-radius:2px;padding:14px;color:#fff;font-family:'Anton',sans-serif;font-size:1.2rem;text-align:center;outline:none;box-sizing:border-box;"
-            onkeydown="if(event.key==='Enter') saveScore();"/>
+        <div id="name-entry" style="width:100%;box-sizing:border-box;">
+          <div style="font-family:'Anton',sans-serif;font-size:.9rem;color:#E8C547;text-align:center;margin-bottom:10px;">Enter your name to save score</div>
+          <input id="player-name" type="text" maxlength="12" placeholder="Your name" onkeydown="if(event.key==='Enter') saveScore();"
+            style="display:block;width:100%;box-sizing:border-box;background:#1a1a1a;border:2px solid #E8C547;border-radius:2px;padding:14px;color:#fff;font-family:'Anton',sans-serif;font-size:1.3rem;text-align:center;outline:none;margin-bottom:12px;"/>
           <button onclick="saveScore()"
-            style="width:100%;background:#E8C547;border:none;border-radius:2px;padding:18px;font-family:'Anton',sans-serif;font-size:1.4rem;letter-spacing:.04em;cursor:pointer;color:#000;box-sizing:border-box;">
-            SAVE SCORE
+            style="display:block;width:100%;box-sizing:border-box;background:#E8C547;border:none;border-radius:2px;padding:18px;font-family:'Anton',sans-serif;font-size:1.4rem;color:#000;cursor:pointer;margin-bottom:12px;">
+            &#x2713; SAVE SCORE
           </button>
+          <div style="font-family:'Space Mono',monospace;font-size:.45rem;color:#555;text-align:center;">or press Enter on keyboard</div>
         </div>
 
-        <!-- Close button shown after saving -->
         <button id="close-gameover"
           onclick="document.getElementById('game-over').style.display='none';"
-          style="display:none;width:100%;background:transparent;border:1px solid #555;border-radius:2px;padding:14px;font-family:'Anton',sans-serif;font-size:1rem;cursor:pointer;color:#9a9a90;box-sizing:border-box;">
+          style="display:none;width:100%;box-sizing:border-box;background:transparent;border:1px solid #555;border-radius:2px;padding:14px;font-family:'Anton',sans-serif;font-size:1rem;color:#9a9a90;cursor:pointer;margin-top:10px;">
           CLOSE &#x2715;
         </button>
 
