@@ -353,7 +353,6 @@ body{background:var(--black);color:var(--white);font-family:'DM Sans',sans-serif
           <option value="1">Just me</option>
           <option value="2">Me + 1</option>
           <option value="3">Me + 2</option>
-          <option value="4">Me + 3</option>
         </select>
         <div style="font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:.1em;color:#b0b0a8;margin-top:6px;">Adults only &middot; No kids please</div>
       </div>
@@ -365,10 +364,6 @@ body{background:var(--black);color:var(--white);font-family:'DM Sans',sans-serif
         <div class="form-group" id="guest2-group" style="display:none;">
           <label class="form-label">Guest 2 Name</label>
           <input class="form-input" type="text" id="fguest2" placeholder="Full name" maxlength="40" />
-        </div>
-        <div class="form-group" id="guest3-group" style="display:none;">
-          <label class="form-label">Guest 3 Name</label>
-          <input class="form-input" type="text" id="fguest3" placeholder="Full name" maxlength="40" />
         </div>
       </div>
       <div class="form-group">
@@ -505,7 +500,20 @@ function enterSite(){
   startMusic();
   var splash=document.getElementById('splash');
   splash.classList.add('hide');
-  setTimeout(function(){ splash.style.display='none'; },650);
+  setTimeout(function(){
+    splash.style.display='none';
+    if(window.location.hash==='#photo-section'){
+      var el=document.getElementById('photo-section');
+      if(el) setTimeout(function(){ el.scrollIntoView({behavior:'smooth'}); },300);
+    }
+  },650);
+}
+
+// Auto-enter if URL has #photo-section (QR code scan)
+if(window.location.hash==='#photo-section'){
+  window.addEventListener('load',function(){
+    enterSite();
+  });
 }
 function startMusic(){
   if(musicStarted) return;
@@ -1063,7 +1071,7 @@ function doRSVP(){
   var msg=document.getElementById('fmsg').value.trim();
   var g1=document.getElementById('fguest1')?document.getElementById('fguest1').value.trim():'';
   var g2=document.getElementById('fguest2')?document.getElementById('fguest2').value.trim():'';
-  var g3=document.getElementById('fguest3')?document.getElementById('fguest3').value.trim():'';
+  var g3='';
   var plusName=[g1,g2,g3].filter(Boolean).join(', ');
   if(!n){ alert('Enter your name.'); return; }
   if(!going){ alert('Tell us if you can make it.'); return; }
