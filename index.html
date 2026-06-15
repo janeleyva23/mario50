@@ -464,9 +464,10 @@ function resetForm(){
   if(pw) pw.style.display='none';
 }
 
-// MUSIC
+// MUSIC  (Web Audio API so it plays even when the phone is on silent; HTML5 fallback)
 var musicPlaying=false;
 var bgMusic=document.getElementById('bg-music');
+var audioCtx=null, audioBuffer=null, audioSource=null, audioGain=null, audioLoading=false, usingWebAudio=false;
 
 function setMusicBtn(p){
   var btn=document.getElementById('music-toggle');
@@ -475,24 +476,81 @@ function setMusicBtn(p){
   if(p && hint){ hint.style.display='none'; }
 }
 
+function getAudioURI(){
+  var src = bgMusic ? bgMusic.querySelector('source') : null;
+  return src ? src.getAttribute('src') : null;
+}
+
+function dataURIToArrayBuffer(uri){
+  var base64 = uri.split(',')[1];
+  var binary = atob(base64);
+  var len = binary.length;
+  var bytes = new Uint8Array(len);
+  for(var i=0;i<len;i++){ bytes[i] = binary.charCodeAt(i); }
+  return bytes.buffer;
+}
+
+function ensureCtx(){
+  if(!audioCtx){
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return null;
+    try { audioCtx = new AC(); } catch(e){ return null; }
+    audioGain = audioCtx.createGain();
+    audioGain.gain.value = 1.0;
+    audioGain.connect(audioCtx.destination);
+  }
+  return audioCtx;
+}
+
+function startBufferSource(){
+  if(!audioBuffer || !audioCtx) return;
+  if(audioSource){ try{ audioSource.stop(); }catch(e){} audioSource=null; }
+  audioSource = audioCtx.createBufferSource();
+  audioSource.buffer = audioBuffer;
+  audioSource.loop = true;
+  audioSource.connect(audioGain);
+  try { audioSource.start(0); } catch(e){}
+  usingWebAudio = true;
+}
+
 function playMusic(){
+  var ctx = ensureCtx();
+  if(ctx){
+    musicPlaying = true; setMusicBtn(true);
+    if(ctx.state === 'suspended'){ ctx.resume(); }
+    if(audioBuffer){ startBufferSource(); return; }
+    if(audioLoading){ return; }
+    audioLoading = true;
+    var uri = getAudioURI();
+    if(!uri){ audioLoading=false; playHtml5(); return; }
+    var arrbuf;
+    try { arrbuf = dataURIToArrayBuffer(uri); } catch(e){ audioLoading=false; playHtml5(); return; }
+    try {
+      ctx.decodeAudioData(arrbuf, function(decoded){
+        audioBuffer = decoded; audioLoading=false;
+        if(musicPlaying){ startBufferSource(); }
+      }, function(){ audioLoading=false; playHtml5(); });
+    } catch(e){ audioLoading=false; playHtml5(); }
+    return;
+  }
+  playHtml5();
+}
+
+function playHtml5(){
+  usingWebAudio = false;
   if(!bgMusic){ bgMusic=document.getElementById('bg-music'); }
   if(!bgMusic){ return; }
-  bgMusic.muted=false;
-  bgMusic.volume=1.0;
-  musicPlaying=true;      // optimistic so the first-tap handler does not double fire
-  setMusicBtn(true);
+  bgMusic.muted=false; bgMusic.volume=1.0;
+  musicPlaying=true; setMusicBtn(true);
   var pr;
   try { pr = bgMusic.play(); } catch(e){ pr = undefined; }
   if(pr!==undefined && pr.catch){
     pr.catch(function(){
-      // one retry after a fresh load
       try { bgMusic.load(); } catch(e){}
       setTimeout(function(){
         bgMusic.play().catch(function(){
-          musicPlaying=false;
-          setMusicBtn(false);
-          showToast('No sound? Switch your phone OFF silent mode, then tap again.');
+          musicPlaying=false; setMusicBtn(false);
+          showToast('No sound? Turn your phone volume up and tap again.');
         });
       },150);
     });
@@ -500,9 +558,9 @@ function playMusic(){
 }
 
 function pauseMusic(){
-  if(bgMusic){ bgMusic.pause(); }
-  musicPlaying=false;
-  setMusicBtn(false);
+  if(usingWebAudio && audioSource){ try{ audioSource.stop(); }catch(e){} audioSource=null; }
+  if(bgMusic){ try{ bgMusic.pause(); }catch(e){} }
+  musicPlaying=false; setMusicBtn(false);
 }
 
 function toggleMusic(){
@@ -510,7 +568,6 @@ function toggleMusic(){
 }
 
 // Start music on the very first interaction anywhere on the page (most reliable on mobile).
-// Button taps fire their own handler first (sets musicPlaying), so this safely skips them.
 function firstInteract(){
   if(!musicPlaying){ playMusic(); }
   document.removeEventListener('touchend', firstInteract);
